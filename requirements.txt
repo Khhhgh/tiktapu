@@ -1,10 +1,8 @@
 python-telegram-bot==20.3
-yt-dlp
 aiohttp==3.8.6
 httpx==0.27.0
-apscheduler==3.8.1
-python-dotenv==0.19.0
-requests==2.26.0
+yt-dlp
+apscheduler
+requests
 nest_asyncio
-selenium
-webdriver_manager
+python-dotenv
