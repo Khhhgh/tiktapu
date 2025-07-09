@@ -1,4 +1,4 @@
-python-telegram-bot==20.1
+python-telegram-bot==20.3
 yt-dlp
 aiohttp==3.7.4.post0
 apscheduler==3.8.1
