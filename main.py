@@ -5,7 +5,7 @@ import os
 import asyncio
 import yt_dlp
 import nest_asyncio
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputFile
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
@@ -44,7 +44,7 @@ def load_config():
         with open(CONFIG_FILE, "r") as f:
             return json.load(f)
     except:
-        return {"sub_channels": []}  # قائمة القنوات
+        return {"sub_channels": []}
 
 def save_config(config):
     with open(CONFIG_FILE, "w") as f:
@@ -56,7 +56,6 @@ config = load_config()
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
 
-    # إشعار للمالك عند دخول عضو جديد
     await context.bot.send_message(
         OWNER_ID,
         f"🆕 عضو جديد دخل البوت:\n\n"
@@ -65,13 +64,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"📛 اليوزر: @{update.effective_user.username or 'لايوجد'}"
     )
 
-    # تحقق الاشتراك في القنوات واحدة تلو الأخرى
     sub_channels = config.get("sub_channels", [])
     for channel in sub_channels:
         try:
             member = await context.bot.get_chat_member(channel, user_id)
             if member.status not in ["member", "creator", "administrator"]:
-                # المستخدم غير مشترك في هذه القناة، اطلب الاشتراك مع زر
                 keyboard = InlineKeyboardMarkup(
                     [[InlineKeyboardButton(f"اشترك في {channel}", url=f"https://t.me/{channel.lstrip('@')}")]]
                 )
@@ -87,7 +84,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
             return
 
-    # إذا كان مشترك في كل القنوات، أرسل الترحيب مع زر تواصل
     welcome_text = f"""
 🌝 أهلاً بك عزيزي @{update.effective_user.username or update.effective_user.first_name}
 
@@ -112,8 +108,7 @@ async def admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("📢 إرسال إذاعة", callback_data="broadcast")],
         [InlineKeyboardButton("📊 عرض الإحصائيات", callback_data="stats")],
     ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text("لوحة الأدمن:", reply_markup=reply_markup)
+    await update.message.reply_text("لوحة الأدمن:", reply_markup=InlineKeyboardMarkup(keyboard))
 
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -144,7 +139,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data["action"] = None
 
     elif data.startswith("del_chan|"):
-        channel_to_del = data.split("|",1)[1]
+        channel_to_del = data.split("|", 1)[1]
         sub_channels = config.get("sub_channels", [])
         if channel_to_del in sub_channels:
             sub_channels.remove(channel_to_del)
@@ -207,12 +202,12 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             video_url = urls[0]
 
             ydl_opts = {
-    "format": "mp4",
-    "outtmpl": "downloaded_video.%(ext)s",
-    "quiet": True,
-    "no_warnings": True,
-    "http_timeout": 30,   # زيادة المهلة إلى 30 ثانية
-}
+                "format": "mp4",
+                "outtmpl": "downloaded_video.%(ext)s",
+                "quiet": True,
+                "no_warnings": True,
+                "http_timeout": 30,
+            }
 
             try:
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -236,7 +231,6 @@ async def main():
     application.add_handler(CallbackQueryHandler(button_handler))
     application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), message_handler))
 
-    # تعديل هنا لتشغيل بدون إغلاق حلقة asyncio
     await application.initialize()
     await application.start()
     await application.updater.start_polling()
